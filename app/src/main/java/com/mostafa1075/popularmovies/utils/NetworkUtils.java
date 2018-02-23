@@ -34,6 +34,10 @@ public class NetworkUtils {
     // TODO: look up how to hide the API key
     private static final String API_KEY = "";
 
+    /* Poster URL related constants */
+    private static final String POSTER_BASE_URL = "http://image.tmdb.org/t/p";
+    private static final String IMAGE_SIZE = "w342";
+
     /* The whole body of this method is copied from OkHttp github page example: http://square.github.io/okhttp/.
     * It downloads a URL and returns its contents as a string.
     */
@@ -62,11 +66,18 @@ public class NetworkUtils {
                 .build();
 
         try {
-            URL MoviesQueryUrl = new URL(MoviesQueryUri.toString());
-            return MoviesQueryUrl;
+            return new URL(MoviesQueryUri.toString());
         } catch (MalformedURLException e) {
             e.printStackTrace();
             return null;
         }
+    }
+
+    public static String buildPosterUrl(String posterPath) {
+        Uri posterUri = Uri.parse(POSTER_BASE_URL).buildUpon()
+                .appendPath(IMAGE_SIZE)
+                .build();
+
+        return posterUri.toString() + posterPath;
     }
 }
