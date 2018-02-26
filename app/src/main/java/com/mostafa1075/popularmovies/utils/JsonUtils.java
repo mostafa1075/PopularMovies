@@ -1,10 +1,13 @@
 package com.mostafa1075.popularmovies.utils;
 
-import android.content.ContentValues;
+
+import com.mostafa1075.popularmovies.model.MovieDetails;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.util.ArrayList;
 
 /**
  * Created by mosta on 21-Feb-18.
@@ -12,7 +15,7 @@ import org.json.JSONObject;
 
 public class JsonUtils {
 
-    /* Constants for the  JSONkeys */
+    /** Constants for the  JSONkeys */
     public static final String MOVIES_RESULTS = "results";
     public static final String MOVIE_TITLE = "title";
     public static final String MOVIE_POSTER_PATH = "poster_path";
@@ -20,23 +23,23 @@ public class JsonUtils {
     public static final String MOVIE_RATING = "vote_average";
     public static final String MOVIE_RELEASE_DATE = "release_date";
 
-    /* Parses the JSON received from the API and returns all movies details in a ContentValues array */
-    public static ContentValues[] parseAllMoviesJson(String json) throws JSONException {
+    /** Parses the JSON received from the API and returns all movies details in a ContentValues array */
+    public static ArrayList<MovieDetails> parseAllMoviesJson(String json) throws JSONException {
 
         JSONObject moviesJson = new JSONObject(json);
         JSONArray moviesJsonArray = moviesJson.getJSONArray(MOVIES_RESULTS);
         int moviesCount = moviesJsonArray.length();
 
-        ContentValues[] moviesData = new ContentValues[moviesCount];
+        ArrayList<MovieDetails> moviesData = new ArrayList<>();
 
         for (int i = 0; i < moviesCount; i++)
-            moviesData[i] = parseMovieJson(moviesJsonArray.getJSONObject(i));
+            moviesData.add(parseMovieJson(moviesJsonArray.getJSONObject(i)));
 
         return moviesData;
     }
 
-    /* Parses a single movie JSONObject and returns it as a ContentValues object */
-    private static ContentValues parseMovieJson(JSONObject movieObject){
+    /** Parses a single movie JSONObject and returns it as a ContentValues object */
+    private static MovieDetails parseMovieJson(JSONObject movieObject) {
 
         /* Get the required movie details */
         String title = movieObject.optString(MOVIE_TITLE);
@@ -44,17 +47,9 @@ public class JsonUtils {
         String overview = movieObject.optString(MOVIE_OVERVIEW);
         double rating = movieObject.optDouble(MOVIE_RATING);
         String releaseDate = movieObject.optString(MOVIE_RELEASE_DATE);
-
-        ContentValues movieCv = new ContentValues();
-
-        /* Put all the details in a movie ContentValues */
-        movieCv.put(MOVIE_TITLE, title);
-        movieCv.put(MOVIE_POSTER_PATH, posterPath);
-        movieCv.put(MOVIE_OVERVIEW, overview);
-        movieCv.put(MOVIE_RATING, rating);
-        movieCv.put(MOVIE_RELEASE_DATE, releaseDate);
-
-        return movieCv;
+        //build the URL here and pass it instead of the path and building the URL every time
+        String posterUrl = NetworkUtils.buildPosterUrl(posterPath);
+        return new MovieDetails(title, posterUrl, overview, rating, releaseDate);
     }
 
 }

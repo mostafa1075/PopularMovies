@@ -1,3 +1,20 @@
 <resources>
     <string name="app_name">Popular Movies</string>
+
+    <!-- title and key of sort by ListPreference -->
+    <string name="pref_sortBy_label">Sort By</string>
+    <string name="pref_sortBy_key" translatable="false">sort_by</string>
+
+    <!-- labels for sort by preference in SharedPreference -->
+    <string name="pref_sortBy_label_popular">Most Popular</string>
+    <string name="pref_sortBy_label_topRated">Top Rated</string>
+
+    <!-- keys for sort by preference in SharedPreference -->
+    <string name="pref_sortBy_popular" translatable="false">popular</string>
+    <string name="pref_sortBy_topRated" translatable="false">top_rated</string>
+    <string name="pref_sortBy_default" translatable="false">@string/pref_sortBy_popular</string>
+
+    <string name="error_msg">Failed to connect to the internet. Please check your connection and try again.</string>
+
+    <string name="action_settings">settings</string>
 </resources>

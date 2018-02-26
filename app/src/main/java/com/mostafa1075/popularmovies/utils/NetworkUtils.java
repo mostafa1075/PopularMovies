@@ -2,6 +2,8 @@ package com.mostafa1075.popularmovies.utils;
 
 import android.net.Uri;
 
+import com.mostafa1075.popularmovies.BuildConfig;
+
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -20,26 +22,30 @@ public class NetworkUtils {
 
     private static final String MOVIES_BASE_URL = "https://api.themoviedb.org/3";
 
-    /* The main path for movies */
+    /** The main path for movies */
     private static final String MOVIE_PATH = "movie";
-    /* The path for the top rated movies */
+    /** The path for the top rated movies */
     private static final String TOP_RATED_PATH = "top_rated";
-    /* The path for the most popular movies */
+    /** The path for the most popular movies */
     private static final String POPULAR_PATH = "popular";
 
-    /* The page number parameter to be sent to the API */
+    /** The page number parameter to be sent to the API */
     private static final String PAGE_NUM_PARAM = "page";
     private static final String API_KEY_PARAM = "api_key";
 
-    // TODO: look up how to hide the API key
-    private static final String API_KEY = "";
+    /**
+     * You should add your own API key in gradle.properties as tmdbToken = "API_KEY". I found out how to do this here:
+     * https://www.learnhowtoprogram.com/android/web-service-backends-and-custom-fragments/managing-api-keys
+     */
+    private static final String API_KEY = BuildConfig.TMDB_TOKEN;
 
-    /* Poster URL related constants */
+    /** Poster URL related constants */
     private static final String POSTER_BASE_URL = "http://image.tmdb.org/t/p";
     private static final String IMAGE_SIZE = "w342";
 
-    /* The whole body of this method is copied from OkHttp github page example: http://square.github.io/okhttp/.
-    * It downloads a URL and returns its contents as a string.
+   /**
+    *  This method was copied from OkHttp github page example: http://square.github.io/okhttp/.
+    *  It downloads a URL and returns its contents as a string.
     */
     public static String getResponseFromHttpUrl(URL url) throws IOException {
         Request request = new Request.Builder()
@@ -76,8 +82,9 @@ public class NetworkUtils {
     public static String buildPosterUrl(String posterPath) {
         Uri posterUri = Uri.parse(POSTER_BASE_URL).buildUpon()
                 .appendPath(IMAGE_SIZE)
+                .appendPath(posterPath.substring(1)) // The additional '/' in posterPath messes this up
                 .build();
 
-        return posterUri.toString() + posterPath;
+        return posterUri.toString();
     }
 }
