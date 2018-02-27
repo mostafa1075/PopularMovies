@@ -11,5 +11,8 @@ You should add your API key in gradle.properties as:
 ```
 tmdbToken = "[API_KEY]"
 ```
+## Frameworks Used
+[okhttp](http://square.github.io/okhttp/), [picasso](http://square.github.io/picasso/)
+
 ## Further Development
 This app is still in development. More features will be added such as favorites, trailers, and reviews, Also some UI polishing.
