@@ -1,6 +1,8 @@
 package com.mostafa1075.popularmovies.model;
 
 import android.os.Bundle;
+import android.os.Parcel;
+import android.os.Parcelable;
 
 import com.mostafa1075.popularmovies.utils.JsonUtils;
 import com.mostafa1075.popularmovies.utils.NetworkUtils;
@@ -9,7 +11,7 @@ import com.mostafa1075.popularmovies.utils.NetworkUtils;
  * Created by mosta on 24-Feb-18.
  */
 
-public class MovieDetails {
+public class MovieDetails implements Parcelable {
 
     private String title;
     private String overview;
@@ -25,27 +27,39 @@ public class MovieDetails {
         this.releaseDate = releaseDate.split("-")[0];
     }
 
-    // TODO: replace JsonUtils constants with the to be created MovieContract constants
-    public MovieDetails(Bundle movieBundle){
-        this.title = movieBundle.getString(JsonUtils.MOVIE_TITLE);
-        this.posterUrl = movieBundle.getString(JsonUtils.MOVIE_POSTER_PATH);
-        this.overview = movieBundle.getString(JsonUtils.MOVIE_OVERVIEW);
-        this.rating = movieBundle.getDouble(JsonUtils.MOVIE_RATING);
-        this.releaseDate = movieBundle.getString(JsonUtils.MOVIE_RELEASE_DATE);
+    protected MovieDetails(Parcel in) {
+        title = in.readString();
+        overview = in.readString();
+        rating = in.readDouble();
+        releaseDate = in.readString();
+        posterUrl = in.readString();
     }
 
-    // TODO: replace JsonUtils constants with the to be created MovieContract constants
-    public Bundle getAsBundle(){
+    public static final Creator<MovieDetails> CREATOR = new Creator<MovieDetails>() {
+        @Override
+        public MovieDetails createFromParcel(Parcel in) {
+            return new MovieDetails(in);
+        }
 
-        Bundle movieBundle = new Bundle();
+        @Override
+        public MovieDetails[] newArray(int size) {
+            return new MovieDetails[size];
+        }
+    };
 
-        movieBundle.putString(JsonUtils.MOVIE_TITLE, title);
-        movieBundle.putString(JsonUtils.MOVIE_POSTER_PATH, posterUrl);
-        movieBundle.putString(JsonUtils.MOVIE_OVERVIEW, overview);
-        movieBundle.putDouble(JsonUtils.MOVIE_RATING, rating);
-        movieBundle.putString(JsonUtils.MOVIE_RELEASE_DATE, releaseDate);
+    @Override
+    public int describeContents() {
+        return 0;
+    }
 
-        return movieBundle;
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+
+        dest.writeString(title);
+        dest.writeString(overview);
+        dest.writeDouble(rating);
+        dest.writeString(releaseDate);
+        dest.writeString(posterUrl);
     }
 
     public String getTitle() {
@@ -87,5 +101,6 @@ public class MovieDetails {
     public void setReleaseDate(String releaseDate) {
         this.releaseDate = releaseDate;
     }
+
 
 }

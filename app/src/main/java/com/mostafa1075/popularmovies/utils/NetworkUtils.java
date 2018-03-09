@@ -63,7 +63,7 @@ public class NetworkUtils {
      * @param pageNum    the page number of the movies
      * @return The URL used to query the movies
      */
-    public static URL getUrl(String sortByPath, String pageNum) {
+    public static URL buildUrl(String sortByPath, String pageNum) {
         Uri MoviesQueryUri = Uri.parse(MOVIES_BASE_URL).buildUpon()
                 .appendPath(MOVIE_PATH)
                 .appendPath(sortByPath)

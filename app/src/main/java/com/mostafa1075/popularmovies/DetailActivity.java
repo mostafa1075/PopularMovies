@@ -6,7 +6,6 @@ import android.support.v4.app.NavUtils;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.MenuItem;
-import android.widget.Toast;
 
 import com.mostafa1075.popularmovies.databinding.ActivityDetailBinding;
 import com.mostafa1075.popularmovies.model.MovieDetails;
@@ -27,9 +26,7 @@ public class DetailActivity extends AppCompatActivity {
         Intent intent = getIntent();
         if(intent == null)
             finish();
-        Bundle movieBundle = intent.getExtras();
-
-        MovieDetails movieDetails = new MovieDetails(movieBundle);
+        MovieDetails movieDetails = intent.getParcelableExtra(MainActivity.MOVIE_DATA_KEY);
 
         setTitle(movieDetails.getTitle());
         Picasso.with(this)
