@@ -18,73 +18,49 @@ import okhttp3.Response;
 
 public class NetworkUtils {
 
-    private static final OkHttpClient client = new OkHttpClient();
-
-    private static final String MOVIES_BASE_URL = "https://api.themoviedb.org/3";
-
-    /** The main path for movies */
-    private static final String MOVIE_PATH = "movie";
-    /** The path for the top rated movies */
-    private static final String TOP_RATED_PATH = "top_rated";
-    /** The path for the most popular movies */
-    private static final String POPULAR_PATH = "popular";
-
-    /** The page number parameter to be sent to the API */
-    private static final String PAGE_NUM_PARAM = "page";
-    private static final String API_KEY_PARAM = "api_key";
-
     /**
      * You should add your own API key in gradle.properties as tmdbToken = "API_KEY". I found out how to do this here:
      * https://www.learnhowtoprogram.com/android/web-service-backends-and-custom-fragments/managing-api-keys
      */
-    private static final String API_KEY = BuildConfig.TMDB_TOKEN;
-
-    /** Poster URL related constants */
-    private static final String POSTER_BASE_URL = "http://image.tmdb.org/t/p";
-    private static final String IMAGE_SIZE = "w342";
-
-   /**
-    *  This method was copied from OkHttp github page example: http://square.github.io/okhttp/.
-    *  It downloads a URL and returns its contents as a string.
-    */
-    public static String getResponseFromHttpUrl(URL url) throws IOException {
-        Request request = new Request.Builder()
-                .url(url)
-                .build();
-
-        Response response = client.newCall(request).execute();
-        return response.body().string();
-    }
+    public static final String API_KEY = BuildConfig.TMDB_TOKEN;
 
     /**
-     * Builds the URL that'll be used for querying the movies
-     *
-     * @param sortByPath The path used to sort the movies in order
-     * @param pageNum    the page number of the movies
-     * @return The URL used to query the movies
+     * Poster URL related constants
      */
-    public static URL buildUrl(String sortByPath, String pageNum) {
-        Uri MoviesQueryUri = Uri.parse(MOVIES_BASE_URL).buildUpon()
-                .appendPath(MOVIE_PATH)
-                .appendPath(sortByPath)
-                .appendQueryParameter(API_KEY_PARAM, API_KEY)
-                .appendQueryParameter(PAGE_NUM_PARAM, pageNum)
+    private static final String POSTER_BASE_URL = "http://image.tmdb.org/t/p";
+    private static final String IMAGE_SIZE = "w500";
+    /**
+     * Video thumbnail URL related constants
+     */
+    private static final String VIDEO_THUMBNAIL_BASE_URL = "http://img.youtube.com/vi";
+    private static final String VIDEO_THUMBNAIL_NUMBER = "0.jpg";
+
+    private static final String VIDEO_BASE_URL = "http://www.youtube.com/watch";
+    private static final String VIDEO_QUERY_KEY = "v";
+
+    public static String buildImageUrl(String posterPath) {
+        Uri imageUri = Uri.parse(POSTER_BASE_URL).buildUpon()
+                .appendPath(IMAGE_SIZE)
+                .appendEncodedPath(posterPath) // The additional '/' in posterPath messed this up
                 .build();
 
-        try {
-            return new URL(MoviesQueryUri.toString());
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
-            return null;
-        }
+        return imageUri.toString();
+    }
+    /** gets the video thumbnail using the video path */
+    public static String buildVideoThumbnailUrl(String videoPath){
+        Uri thumbnailUri = Uri.parse(VIDEO_THUMBNAIL_BASE_URL)
+                .buildUpon()
+                .appendPath(videoPath)
+                .appendPath(VIDEO_THUMBNAIL_NUMBER)
+                .build();
+        return thumbnailUri.toString();
     }
 
-    public static String buildPosterUrl(String posterPath) {
-        Uri posterUri = Uri.parse(POSTER_BASE_URL).buildUpon()
-                .appendPath(IMAGE_SIZE)
-                .appendPath(posterPath.substring(1)) // The additional '/' in posterPath messes this up
+    public  static Uri buildVideoUri(String videoKey){
+        Uri VideoUri = Uri.parse(VIDEO_BASE_URL)
+                .buildUpon()
+                .appendQueryParameter(VIDEO_QUERY_KEY, videoKey)
                 .build();
-
-        return posterUri.toString();
+        return VideoUri;
     }
 }

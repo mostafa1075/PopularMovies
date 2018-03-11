@@ -5,65 +5,122 @@
 
     <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         android:paddingBottom="16dp">
 
-        <android.support.constraint.ConstraintLayout
-
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            tools:context="com.mostafa1075.popularmovies.DetailActivity">
+            android:layout_height="match_parent"
+            android:orientation="vertical">
 
-            <ImageView
-                android:id="@+id/iv_poster"
-                android:layout_width="200dp"
-                android:layout_height="250dp"
-                android:layout_marginStart="24dp"
-                android:layout_marginTop="24dp"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                android:layout_marginLeft="24dp" />
+            <android.support.constraint.ConstraintLayout
+
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingBottom="16dp"
+                tools:context="com.mostafa1075.popularmovies.DetailActivity">
+
+                <ImageView
+                    android:id="@+id/iv_poster"
+                    android:layout_width="200dp"
+                    android:layout_height="250dp"
+                    android:layout_marginStart="16dp"
+                    android:layout_marginTop="24dp"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    android:layout_marginLeft="16dp" />
+
+                <TextView
+                    android:id="@+id/tv_year"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="16dp"
+                    android:layout_marginStart="16dp"
+                    android:layout_marginTop="48dp"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Display1"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toEndOf="@+id/iv_poster"
+                    app:layout_constraintTop_toTopOf="parent"
+                    tools:text="1995" />
+
+                <TextView
+                    android:id="@+id/tv_rating"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="32dp"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Display1"
+                    app:layout_constraintEnd_toEndOf="@+id/tv_year"
+                    app:layout_constraintStart_toStartOf="@+id/tv_year"
+                    app:layout_constraintTop_toBottomOf="@+id/tv_year"
+                    tools:text="9.1" />
+
+                <View style="@style/Divider" />
+
+                <TextView
+                    android:id="@+id/tv_overview"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="16dp"
+                    android:layout_marginRight="16dp"
+                    android:layout_marginTop="8dp"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Body1"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="@+id/iv_poster"
+                    app:layout_constraintTop_toBottomOf="@+id/tv_overview_label"
+                    tools:text="Raj is a rich, carefree, happy-go-lucky second generation NRI. Simran is the daughter of Chaudhary Baldev Singh, who in spite of being an NRI is very strict about adherence to Indian values. Simran has left for India to be married to her childhood fiancé. Raj leaves for India with a mission at his hands, to claim his lady love under the noses of her whole family. Thus begins a saga." />
+
+                <TextView
+                    android:id="@+id/tv_overview_label"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="@string/overview_label"
+                    android:textAllCaps="true"
+                    android:textStyle="bold"
+                    app:layout_constraintStart_toStartOf="@+id/iv_poster"
+                    app:layout_constraintTop_toBottomOf="@+id/iv_poster" />
+
+            </android.support.constraint.ConstraintLayout>
+
+            <View style="@style/Divider" />
 
             <TextView
-                android:id="@+id/tv_year"
-                android:layout_width="0dp"
+                android:id="@+id/tv_video_label"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="16dp"
-                android:layout_marginStart="16dp"
-                android:layout_marginTop="48dp"
-                android:textAppearance="@style/TextAppearance.AppCompat.Display1"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toEndOf="@+id/iv_poster"
-                app:layout_constraintTop_toTopOf="parent"
-                tools:text="1995" />
+                android:paddingLeft="16dp"
+                android:paddingTop="8dp"
+                android:text="@string/videos_label"
+                android:textAllCaps="true"
+                android:textStyle="bold" />
+
+            <android.support.v7.widget.RecyclerView
+                android:paddingTop="16dp"
+                android:paddingBottom="16dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/recyclerview_videos" />
+
+            <View style="@style/Divider"/>
 
             <TextView
-                android:id="@+id/tv_rating"
-                android:layout_width="0dp"
+                android:id="@+id/tv_reviews_label"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="32dp"
-                android:textAppearance="@style/TextAppearance.AppCompat.Display1"
-                app:layout_constraintEnd_toEndOf="@+id/tv_year"
-                app:layout_constraintStart_toStartOf="@+id/tv_year"
-                app:layout_constraintTop_toBottomOf="@+id/tv_year"
-                tools:text="9.1" />
+                android:paddingLeft="16dp"
+                android:paddingTop="8dp"
+                android:text="@string/Reviews_label"
+                android:textAllCaps="true"
+                android:textStyle="bold" />
 
-            <TextView
-                android:id="@+id/tv_overview"
-                android:layout_width="0dp"
+            <android.support.v7.widget.RecyclerView
+                android:paddingTop="16dp"
+                android:paddingBottom="16dp"
+                android:paddingRight="16dp"
+                android:paddingLeft="16dp"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="16dp"
-                android:layout_marginStart="8dp"
-                android:layout_marginTop="24dp"
-                android:textAppearance="@style/TextAppearance.AppCompat.Body1"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="@+id/iv_poster"
-                app:layout_constraintTop_toBottomOf="@+id/iv_poster"
-                tools:text="Raj is a rich, carefree, happy-go-lucky second generation NRI. Simran is the daughter of Chaudhary Baldev Singh, who in spite of being an NRI is very strict about adherence to Indian values. Simran has left for India to be married to her childhood fiancé. Raj leaves for India with a mission at his hands, to claim his lady love under the noses of her whole family. Thus begins a saga."
-                android:layout_marginLeft="8dp"
-                android:layout_marginRight="16dp" />
-
-        </android.support.constraint.ConstraintLayout>
-
+                android:id="@+id/recyclerview_reviews"/>
+        </LinearLayout>
     </ScrollView>
 </layout>

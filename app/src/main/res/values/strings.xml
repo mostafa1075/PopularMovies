@@ -16,5 +16,10 @@
 
     <string name="error_msg">Failed to connect to the internet. Please check your connection and try again.</string>
 
+    <!-- Strings for layout labels-->
+    <string name="overview_label">Overview</string>
+    <string name="videos_label">Videos</string>
+    <string name="Reviews_label">Reviews</string>
+
     <string name="action_settings">settings</string>
 </resources>
