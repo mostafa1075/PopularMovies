@@ -1,21 +1,36 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:paddingRight="8dp"
-    android:paddingLeft="8dp">
-    <ImageView
+    android:paddingLeft="8dp"
+    android:paddingRight="8dp">
+
+    <FrameLayout
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/iv_video_thumbnail"/>
+        android:layout_height="wrap_content">
+
+        <ImageView
+            android:id="@+id/iv_video_thumbnail"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
+        <ImageView
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_gravity="center"
+            app:srcCompat="@drawable/playbutton" />
+    </FrameLayout>
+
     <TextView
         android:id="@+id/tv_video_name"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:textAppearance="@style/TextAppearance.AppCompat.SearchResult.Subtitle"
-        tools:text="Trailer" />
+        android:paddingBottom="8dp"
+        android:paddingTop="8dp"
+        android:paddingRight="16dp"
+        tools:text="Trailer"
+        android:paddingEnd="16dp" />
 </LinearLayout>

@@ -1,25 +1,30 @@
 package com.mostafa1075.popularmovies;
 
+
 import android.content.Intent;
-import android.content.SharedPreferences;
-import android.content.res.Configuration;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
+import android.support.v4.content.Loader;
+import android.database.Cursor;
+import android.support.annotation.NonNull;
+import android.support.design.widget.NavigationView;
+import android.support.v4.view.GravityCompat;
+import android.support.v4.widget.DrawerLayout;
 import android.support.v4.widget.SwipeRefreshLayout;
+import android.support.v4.content.CursorLoader;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.support.v7.preference.PreferenceManager;
+import android.util.DisplayMetrics;
 import android.util.Log;
-import android.view.Menu;
-import android.view.MenuInflater;
+import android.view.Display;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.mostafa1075.popularmovies.adapters.MovieAdapter;
+import com.mostafa1075.popularmovies.data.MovieContract;
 import com.mostafa1075.popularmovies.helper.EndlessRecyclerViewScrollListener;
 import com.mostafa1075.popularmovies.pojo.Movie;
 import com.mostafa1075.popularmovies.pojo.MovieResponse;
@@ -33,45 +38,76 @@ import retrofit2.Response;
 
 public class MainActivity extends AppCompatActivity implements
         MovieAdapter.MovieAdapterOnClickHandler,
-        SharedPreferences.OnSharedPreferenceChangeListener {
+        android.support.v4.app.LoaderManager.LoaderCallbacks<Cursor> {
 
-    private static final int SPAN_COUNT_PORTRAIT = 2;
-    private static final int SPAN_COUNT_LANDSCAPE = 3;
+    /**
+     * Constants for outState bundle keys
+     */
+    private final static String PAGE_NUM_KEY = "page_num";
+    private final static String SCROLL_POSITION_KEY = "scroll_position";
+    private final static String SELECTED_NAV_ITEM = "nav_item";
+    /**
+     * Constant for number of movies per page
+     */
+    private static final int MOVIES_PER_PAGE = 20;
+    /**
+     * The key for the parcelable to be passed to DetailActivity
+     */
     public static final String MOVIE_DATA_KEY = "movie data";
-
     private RecyclerView mRecyclerView;
     private MovieAdapter mMovieAdapter;
+    private GridLayoutManager mLayoutManager;
+    private EndlessRecyclerViewScrollListener mScrollListener;
     private ProgressBar mLoadingIndicator;
     private TextView mErrorMessageTv;
+    private DrawerLayout mDrawerLayout;
     /**
-     * The code related to SwipeRefreshLayout was taken and modified from:
+     * The code related to SwipeRefreshLayout was adapted from:
      * https://github.com/codepath/android_guides/wiki/Implementing-Pull-to-Refresh-Guide
      */
-    private SwipeRefreshLayout swipeRefreshLayout;
+    private SwipeRefreshLayout mSwipeRefreshLayout;
     private Call<MovieResponse> mMoviesResponse;
+    /**
+     * The initial page number this activity starts with
+     */
+    private int mInitialPageNum;
+    /**
+     * The page number used for loading new pages
+     */
     private int mPageNum;
+    /**
+     * Used for restoring scrolling position on configuration changed
+     */
+    private int mScrollingPosition;
+    private int mSelectedNavItem;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        if (savedInstanceState != null) {
+            mPageNum = mInitialPageNum = savedInstanceState.getInt(PAGE_NUM_KEY);
+            mScrollingPosition = savedInstanceState.getInt(SCROLL_POSITION_KEY);
+            mSelectedNavItem = savedInstanceState.getInt(SELECTED_NAV_ITEM);
+        } else {
+            mInitialPageNum = mPageNum = 1;
+            mSelectedNavItem = R.id.nav_popular;
+        }
+
         mLoadingIndicator = findViewById(R.id.pb_loading_indicator);
         mErrorMessageTv = findViewById(R.id.tv_error_msg);
-        mPageNum = 1;
 
         initializeRecyclerView();
+        initializeNavigationDrawer();
         loadData();
-
-        PreferenceManager.getDefaultSharedPreferences(this)
-                .registerOnSharedPreferenceChangeListener(this);
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        PreferenceManager.getDefaultSharedPreferences(this)
-                .unregisterOnSharedPreferenceChangeListener(this);
-        mMoviesResponse.cancel();
+        if (mMoviesResponse != null)
+            mMoviesResponse.cancel();
     }
 
     /**
@@ -84,28 +120,21 @@ public class MainActivity extends AppCompatActivity implements
         mRecyclerView = findViewById(R.id.recyclerview_movie);
         mRecyclerView.setHasFixedSize(true);
 
-
-        Configuration config = getResources().getConfiguration();
-        int or = config.orientation;
-        int spanCount =
-                or == config.ORIENTATION_PORTRAIT ? SPAN_COUNT_PORTRAIT : SPAN_COUNT_LANDSCAPE;
-        GridLayoutManager layoutManager = new GridLayoutManager(this, spanCount);
-        mRecyclerView.setLayoutManager(layoutManager);
+        mLayoutManager = new GridLayoutManager(this, getSpanCount());
+        mRecyclerView.setLayoutManager(mLayoutManager);
 
         mMovieAdapter = new MovieAdapter(this, this);
         mRecyclerView.setAdapter(mMovieAdapter);
 
-        swipeRefreshLayout = findViewById(R.id.swipeContainer);
+        mSwipeRefreshLayout = findViewById(R.id.swipeContainer);
         // Setup refresh listener which triggers new data loading
-        swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+        mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
                 reloadData();
             }
         });
-        // The code on how to use EndlessRecyclerViewScrollListener was taken from:
-        // https://github.com/codepath/android_guides/wiki/Endless-Scrolling-with-AdapterViews-and-RecyclerView
-        EndlessRecyclerViewScrollListener scrollListener = new EndlessRecyclerViewScrollListener(layoutManager) {
+        mScrollListener = new EndlessRecyclerViewScrollListener(mLayoutManager) {
             @Override
             public void onLoadMore(int page, int totalItemsCount, RecyclerView view) {
                 // Triggered only when new data needs to be appended to the list
@@ -114,40 +143,89 @@ public class MainActivity extends AppCompatActivity implements
                 loadData();
             }
         };
-        mRecyclerView.addOnScrollListener(scrollListener);
+        // Disable infinite scrolling for favorites
+        if (mSelectedNavItem != R.id.nav_fav) {
+            mRecyclerView.addOnScrollListener(mScrollListener);
+        }
+    }
+
+    /**
+     * This method initialize the components needed for the navigation drawer.
+     */
+    private void initializeNavigationDrawer() {
+
+        // show the drawer icon instead of the Home button
+        ActionBar actionbar = getSupportActionBar();
+        actionbar.setDisplayHomeAsUpEnabled(true);
+        actionbar.setHomeAsUpIndicator(R.drawable.ic_menu);
+
+        mDrawerLayout = findViewById(R.id.drawer_layout);
+        NavigationView navigationView = findViewById(R.id.nav_view);
+        navigationView.getMenu().findItem(mSelectedNavItem).setChecked(true);
+        navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
+            @Override
+            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+                // set item as selected to persist highlight
+                item.setChecked(true);
+                // close drawer when item is tapped
+                mDrawerLayout.closeDrawers();
+                if (mSelectedNavItem != item.getItemId()) {
+
+                    // Disable infinite scrolling for favorites
+                    if (mSelectedNavItem == R.id.nav_fav && item.getItemId() != R.id.nav_fav)
+                        mRecyclerView.addOnScrollListener(mScrollListener);
+                    else if (item.getItemId() == R.id.nav_fav)
+                        mRecyclerView.removeOnScrollListener(mScrollListener);
+
+                    mSelectedNavItem = item.getItemId();
+                    reloadData();
+                }
+                return true;
+            }
+        });
     }
 
     /**
      * Gets the value of sort by from SharePreferences and loads the data form the API
      */
     private void loadData() {
-        /* check if it's online before loading and make sure the refresh indicator is false  */
-        if (!isOnline()) {
-            swipeRefreshLayout.setRefreshing(false);
-            showErrorMessage();
-            return;
-        }
         if (mPageNum == 1)
             mLoadingIndicator.setVisibility(View.VISIBLE);
         RestService service = RestClient.getInstance().service;
 
-        String sortValue = getSortValue();
-        if (sortValue.equals(getString(R.string.pref_sortBy_popular)))
-            mMoviesResponse = service.getPopularMovies(NetworkUtils.API_KEY, "" + mPageNum);
-        else if (sortValue.equals(getString(R.string.pref_sortBy_topRated)))
-            mMoviesResponse = service.getTopRatedMovies(NetworkUtils.API_KEY, "" + mPageNum);
+        switch (mSelectedNavItem) {
+            case R.id.nav_popular:
+                mMoviesResponse = service.getPopularMovies(NetworkUtils.API_KEY, "" + mPageNum);
+                break;
+            case R.id.nav_top:
+                mMoviesResponse = service.getTopRatedMovies(NetworkUtils.API_KEY, "" + mPageNum);
+                break;
+            case R.id.nav_fav:
+                getSupportLoaderManager().restartLoader(0, null, this);
+                return;
+            default:
+                throw new UnsupportedOperationException("Unknown item");
+        }
 
         mMoviesResponse.enqueue(new Callback<MovieResponse>() {
             @Override
             public void onResponse(Call<MovieResponse> call, Response<MovieResponse> response) {
                 mMovieAdapter.addMovieData(response.body().getResults());
-                swipeRefreshLayout.setRefreshing(false);
+                mSwipeRefreshLayout.setRefreshing(false);
+                if (mScrollingPosition != 0 && mPageNum == mInitialPageNum) {
+                    mLayoutManager.scrollToPosition(mScrollingPosition);
+                    mScrollingPosition = 0;
+                }
                 showData();
             }
 
             @Override
             public void onFailure(Call<MovieResponse> call, Throwable t) {
                 Log.e("Movies Request Failure", t.getMessage());
+                if (!NetworkUtils.isOnline(MainActivity.this)) {
+                    mSwipeRefreshLayout.setRefreshing(false);
+                    showErrorMessage();
+                }
             }
         });
     }
@@ -156,23 +234,16 @@ public class MainActivity extends AppCompatActivity implements
      * Clears previous data in the Adapter, sets the page number equal to one and load data again.
      */
     private void reloadData() {
-        mPageNum = 1;
+        mPageNum = mInitialPageNum = 1;
         mMovieAdapter.clearMovieData();
         loadData();
     }
 
     @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.main_menu, menu);
-        return true;
-    }
-
-    @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId() == R.id.action_settings) {
-            Intent intent = new Intent(this, SettingsActivity.class);
-            startActivity(intent);
+        if (item.getItemId() == android.R.id.home) {
+            mDrawerLayout.openDrawer(GravityCompat.START);
+            return true;
         }
         return super.onOptionsItemSelected(item);
     }
@@ -180,34 +251,8 @@ public class MainActivity extends AppCompatActivity implements
     @Override
     public void onClick(Movie movieData) {
         Intent intent = new Intent(this, DetailActivity.class);
-
         intent.putExtra(MOVIE_DATA_KEY, movieData);
         startActivity(intent);
-    }
-
-    /**
-     * get the sort value and page number, and use them to create the url
-     */
-    private String getSortValue() {
-        SharedPreferences sharedPreferences = PreferenceManager
-                .getDefaultSharedPreferences(this);
-
-        String sortKey = getString(R.string.pref_sortBy_key);
-        String defaultValue = getString(R.string.pref_sortBy_default);
-        String sortValue = sharedPreferences.getString(sortKey, defaultValue);
-
-        return sortValue;
-    }
-
-    /**
-     * Checks whether there is internet connection or not. Found in this StackOverflow post:
-     * https://stackoverflow.com/questions/1560788/how-to-check-internet-access-on-android-inetaddress-never-times-out
-     */
-    private boolean isOnline() {
-        ConnectivityManager cm =
-                (ConnectivityManager) getSystemService(this.CONNECTIVITY_SERVICE);
-        NetworkInfo netInfo = cm.getActiveNetworkInfo();
-        return netInfo != null && netInfo.isConnected();
     }
 
     private void showData() {
@@ -219,15 +264,76 @@ public class MainActivity extends AppCompatActivity implements
     private void showErrorMessage() {
         mRecyclerView.setVisibility(View.INVISIBLE);
         mErrorMessageTv.setVisibility(View.VISIBLE);
+        mLoadingIndicator.setVisibility(View.INVISIBLE);
+    }
+
+    @Override
+    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+        return new CursorLoader(this,
+                MovieContract.MovieEntry.CONTENT_URI,
+                null,
+                null,
+                null,
+                null);
+    }
+
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+        mMovieAdapter.addMovieData(data);
+        mSwipeRefreshLayout.setRefreshing(false);
+        showData();
+        mLayoutManager.scrollToPosition(mScrollingPosition);
+        mScrollingPosition = 0;
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader) {
     }
 
     /**
-     * Scrolls the RecyclerView back to the top and reloads data
+     * Saving and restoring scrolling position was adapted from: https://stackoverflow.com/a/27954051
      */
     @Override
-    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-        mRecyclerView.scrollTo(RecyclerView.SCROLLBAR_POSITION_DEFAULT,
-                RecyclerView.SCROLLBAR_POSITION_DEFAULT);
-        reloadData();
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+
+        int scrollPosition = mLayoutManager.findFirstVisibleItemPosition();
+
+        if (mSelectedNavItem != R.id.nav_fav)
+            outState.putInt(SCROLL_POSITION_KEY, getPositionWithinPage(scrollPosition));
+        else
+            outState.putInt(SCROLL_POSITION_KEY, scrollPosition);
+
+        outState.putInt(PAGE_NUM_KEY, getPageNum(scrollPosition) + mInitialPageNum - 1);
+        outState.putInt(SELECTED_NAV_ITEM, mSelectedNavItem);
+    }
+
+    /**
+     * @param scrollPosition The scroll position of the RecyclerView
+     * @return The page number of a certain scrolling position
+     */
+    private int getPageNum(int scrollPosition) {
+        return (int) Math.ceil((double) (scrollPosition + 1) / (double) MOVIES_PER_PAGE);
+    }
+
+    /**
+     * @param scrollPosition The scroll position of the RecyclerView
+     * @return The scrolling position number within the page the item belongs to
+     */
+    private int getPositionWithinPage(int scrollPosition) {
+        return scrollPosition % MOVIES_PER_PAGE;
+    }
+
+    /**
+     * Returns the amount of items that can fit horizontally in the RecyclerView
+     * Used for Automatic spanning of items within the RecyclerView
+     * This method is adapted from this answer: https://stackoverflow.com/a/28077579
+     */
+    private int getSpanCount() {
+        Display display = getWindowManager().getDefaultDisplay();
+        DisplayMetrics outMetrics = new DisplayMetrics();
+        display.getMetrics(outMetrics);
+
+        return Math.round(outMetrics.widthPixels / NetworkUtils.POSTER_IMAGE_WIDTH);
     }
 }

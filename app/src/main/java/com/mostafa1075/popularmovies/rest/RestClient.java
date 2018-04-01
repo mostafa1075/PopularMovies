@@ -1,12 +1,5 @@
 package com.mostafa1075.popularmovies.rest;
 
-import com.google.gson.Gson;
-import com.mostafa1075.popularmovies.BuildConfig;
-import com.mostafa1075.popularmovies.pojo.Movie;
-
-import java.util.List;
-
-import retrofit2.Call;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
@@ -22,8 +15,8 @@ import retrofit2.converter.gson.GsonConverterFactory;
 public class RestClient {
 
     private static final String MOVIES_BASE_URL = "https://api.themoviedb.org/3/";
-    private static RestClient instance = new RestClient();
-    public RestService service;
+    private final static RestClient instance = new RestClient();
+    public final RestService service;
 
     private RestClient() {
         Retrofit retrofit = buildRetrofit();

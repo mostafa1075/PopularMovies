@@ -1,17 +1,18 @@
 package com.mostafa1075.popularmovies.pojo;
 
 /**
- * Created by mosta on 10-Mar-18.
+ * Created using http://www.jsonschema2pojo.org/
  */
 
 
+import android.content.ContentValues;
+import android.database.Cursor;
 import android.os.Parcel;
 import android.os.Parcelable;
 
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
-
-import java.util.List;
+import com.mostafa1075.popularmovies.data.MovieContract;
 
 public class Movie implements Parcelable {
 
@@ -36,6 +37,9 @@ public class Movie implements Parcelable {
     @SerializedName("release_date")
     @Expose
     private String releaseDate;
+
+    private byte[] posterByteArr;
+
     public final static Parcelable.Creator<Movie> CREATOR = new Creator<Movie>() {
 
 
@@ -60,11 +64,30 @@ public class Movie implements Parcelable {
         this.backdropPath = ((String) in.readValue((String.class.getClassLoader())));
         this.overview = ((String) in.readValue((String.class.getClassLoader())));
         this.releaseDate = ((String) in.readValue((String.class.getClassLoader())));
+        this.posterByteArr = ((byte[])in.readValue((byte.class.getClassLoader())));
     }
 
     public Movie() {
     }
 
+    public Movie(Cursor cursor) {
+        int position = cursor.getPosition();
+
+        this.id = cursor.getInt(cursor.getColumnIndex(MovieContract.MovieEntry.COLUMN_MOVIE_ID));
+        this.posterByteArr = cursor.getBlob(cursor.getColumnIndex(MovieContract.MovieEntry.COLUMN_POSTER));
+        this.overview = cursor.getString(cursor.getColumnIndex(MovieContract.MovieEntry.COLUMN_SYNOPSIS));
+        this.voteAverage = cursor.getDouble(cursor.getColumnIndex(MovieContract.MovieEntry.COLUMN_RATING));
+        this.releaseDate = cursor.getString(cursor.getColumnIndex(MovieContract.MovieEntry.COLUMN_RELEASE_DATE));
+    }
+
+    public ContentValues getContentValues(){
+        ContentValues cv = new ContentValues();
+        cv.put(MovieContract.MovieEntry.COLUMN_MOVIE_ID, this.id);
+        cv.put(MovieContract.MovieEntry.COLUMN_RATING, this.voteAverage);
+        cv.put(MovieContract.MovieEntry.COLUMN_RELEASE_DATE, this.releaseDate);
+        cv.put(MovieContract.MovieEntry.COLUMN_SYNOPSIS, this.overview);
+        return cv;
+    }
 
     public Integer getId() {
         return id;
@@ -122,6 +145,14 @@ public class Movie implements Parcelable {
         this.releaseDate = releaseDate;
     }
 
+    public byte[] getPosterByteArr() {
+        return posterByteArr;
+    }
+
+    public void setPosterByteArr(byte[] posterByteArr) {
+        this.posterByteArr = posterByteArr;
+    }
+
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeValue(id);
         dest.writeValue(voteAverage);
@@ -130,6 +161,7 @@ public class Movie implements Parcelable {
         dest.writeValue(backdropPath);
         dest.writeValue(overview);
         dest.writeValue(releaseDate);
+        dest.writeValue(posterByteArr);
     }
 
     public int describeContents() {

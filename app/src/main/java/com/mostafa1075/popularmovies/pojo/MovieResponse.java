@@ -1,13 +1,10 @@
 package com.mostafa1075.popularmovies.pojo;
 
 /**
- * Created by mosta on 10-Mar-18.
+ * Created using http://www.jsonschema2pojo.org/
  */
 
 
-import android.os.Parcelable;
-
-import java.io.Serializable;
 import java.util.List;
 
 import com.google.gson.annotations.Expose;

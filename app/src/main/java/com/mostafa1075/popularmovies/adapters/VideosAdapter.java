@@ -14,7 +14,6 @@ import com.mostafa1075.popularmovies.utils.NetworkUtils;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Created by mosta on 10-Mar-18.
@@ -22,12 +21,12 @@ import java.util.List;
 
 public class VideosAdapter extends RecyclerView.Adapter<VideosAdapter.VideoAdapterViewHolder> {
 
-    ArrayList<MovieVideo> mVideos;
-    Context mContext;
-    private VideosAdapterOnClickHandler mClickHandler;
+    private final Context mContext;
+    private final VideosAdapterOnClickHandler mClickHandler;
+    private ArrayList<MovieVideo> mVideos;
 
     public VideosAdapter(Context context, VideosAdapterOnClickHandler clickHandler) {
-        mVideos = new ArrayList<MovieVideo>();
+        mVideos = new ArrayList<>();
         mContext = context;
         mClickHandler = clickHandler;
     }
@@ -69,13 +68,13 @@ public class VideosAdapter extends RecyclerView.Adapter<VideosAdapter.VideoAdapt
     public class VideoAdapterViewHolder extends RecyclerView.ViewHolder
             implements View.OnClickListener {
 
-        private ImageView mVideoThumbnailImageView;
-        private TextView mVideoNameTextView;
+        private final ImageView mVideoThumbnailImageView;
+        private final TextView mVideoNameTextView;
 
         VideoAdapterViewHolder(View itemView) {
             super(itemView);
-            mVideoNameTextView = (TextView) itemView.findViewById(R.id.tv_video_name);
-            mVideoThumbnailImageView = (ImageView) itemView.findViewById(R.id.iv_video_thumbnail);
+            mVideoNameTextView = itemView.findViewById(R.id.tv_video_name);
+            mVideoThumbnailImageView = itemView.findViewById(R.id.iv_video_thumbnail);
             itemView.setOnClickListener(this);
         }
 

@@ -11,7 +11,6 @@ import com.mostafa1075.popularmovies.R;
 import com.mostafa1075.popularmovies.pojo.MovieReview;
 
 import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Created by mosta on 10-Mar-18.
@@ -19,17 +18,19 @@ import java.util.List;
 
 public class ReviewAdapter extends RecyclerView.Adapter<ReviewAdapter.ReviewAdapterViewHolder> {
 
+    private final Context mContext;
+    private final ReviewAdapterOnClickHandler mClickHandler;
     private ArrayList<MovieReview> mReviews;
-    private Context mContext;
 
-    public ReviewAdapter(Context context) {
-        mReviews = new ArrayList<MovieReview>();
+    public ReviewAdapter(Context context, ReviewAdapterOnClickHandler handler) {
+        mReviews = new ArrayList<>();
         mContext = context;
+        mClickHandler = handler;
     }
 
     @Override
     public ReviewAdapterViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext())
+        View view = LayoutInflater.from(mContext)
                 .inflate(R.layout.review_single_item, parent, false);
         return new ReviewAdapterViewHolder(view);
     }
@@ -50,22 +51,25 @@ public class ReviewAdapter extends RecyclerView.Adapter<ReviewAdapter.ReviewAdap
         notifyDataSetChanged();
 
     }
+    public interface ReviewAdapterOnClickHandler {
+        void onReviewClick(MovieReview review);
+    }
+    public class ReviewAdapterViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
 
-    public class ReviewAdapterViewHolder extends RecyclerView.ViewHolder
-            implements View.OnClickListener {
-
-        private TextView mReviewerNameTextView;
-        private TextView mReviewTextView;
+        private final TextView mReviewerNameTextView;
+        private final TextView mReviewTextView;
 
         public ReviewAdapterViewHolder(View itemView) {
             super(itemView);
-            mReviewerNameTextView = (TextView) itemView.findViewById(R.id.tv_reviewer_name);
-            mReviewTextView = (TextView) itemView.findViewById(R.id.tv_review);
+            mReviewerNameTextView = itemView.findViewById(R.id.tv_reviewer_name);
+            mReviewTextView = itemView.findViewById(R.id.tv_review);
+            itemView.setOnClickListener(this);
         }
 
         @Override
         public void onClick(View v) {
-
+            int position = getAdapterPosition();
+            mClickHandler.onReviewClick(mReviews.get(position));
         }
     }
 }

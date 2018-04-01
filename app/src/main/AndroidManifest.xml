@@ -3,7 +3,7 @@
     package="com.mostafa1075.popularmovies">
 
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
     <application
         android:allowBackup="true"
@@ -12,20 +12,33 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".MainActivity">
+        <activity android:name=".MainActivity"
+            android:launchMode="singleTop">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".DetailActivity"
+        <activity
+            android:name=".DetailActivity"
+            android:launchMode="singleTask"
             android:parentActivityName=".MainActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.mostafa1075.popularmovies.MainActivity"/>
+                android:value="com.mostafa1075.popularmovies.MainActivity" />
         </activity>
-        <activity android:name=".SettingsActivity"></activity>
+
+        <provider
+            android:name=".data.MovieProvider"
+            android:authorities="com.mostafa1075.popularmovies"
+            android:exported="false" />
+
+        <activity android:name=".ReviewActivity"
+            android:parentActivityName=".DetailActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.mostafa1075.popularmovies.DetailActivity"/>
+        </activity>
     </application>
 
 </manifest>
